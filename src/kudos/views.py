@@ -1,10 +1,11 @@
 import datetime
 
+from rest_framework import generics, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_201_CREATED
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
 from src.kudos.models import Kudo
 
@@ -20,12 +21,12 @@ def give_kudos(request, user_id):
 
     today = datetime.date.today()
     start_week = today - datetime.timedelta(today.weekday())
-    if request.user.last_updated <= start_week:
+    if request.user.last_updated < start_week:
         request.user.kudos_counter = 3
         request.user.save()
 
     if not request.user.kudos_counter > 0:
-        return Response({'detail': 'Not Enough Kudos left for this Week :(.'}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'detail': 'Not Enough Kudos left for this Week :(.'}, status=HTTP_400_BAD_REQUEST)
 
     kudos = Kudo.objects.create(
         from_user=request.user,
@@ -38,3 +39,14 @@ def give_kudos(request, user_id):
 
     kudos_serializer = KudoSerializer(kudos)
     return Response(kudos_serializer.data, status=HTTP_201_CREATED)
+
+
+class UsersKudos(generics.ListAPIView):
+    queryset = Kudo.objects.all()
+    serializer_class = KudoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(
+            to_user=self.request.user
+        ).order_by('-date')
