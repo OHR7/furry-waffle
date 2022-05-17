@@ -2,6 +2,7 @@ from src.users.models import User
 from rest_framework import generics
 from rest_framework import permissions
 from src.users.serializers import UserSerializer, OrganizationUserSerializer
+from django.db.models import Q
 
 
 class UserDetailView(generics.RetrieveAPIView):
@@ -19,7 +20,8 @@ class OrganizationUsers(generics.ListAPIView):
 
     def get_queryset(self):
         return self.queryset.filter(
-            organization=self.request.user.organization
+            ~Q(id=self.request.user.id),
+            Q(organization=self.request.user.organization)
         )
 
 
