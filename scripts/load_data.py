@@ -63,6 +63,12 @@ def get_random_date():
 
 
 def run():
+    # Create Super user
+    super_user = User.objects.create_user('admin', password='password')
+    super_user.is_superuser = True
+    super_user.is_staff = True
+    super_user.save()
+
     # Create Organizations
     org_list = []
     user_list = {
@@ -83,7 +89,7 @@ def run():
                 organization=org_obj,
                 first_name=random.choices(first_names)[0],
                 last_name=random.choices(last_names)[0],
-                username='user_{}_{}'.format(org_obj.name, i)
+                username='{}_{}'.format(org_obj.name, i+1)
             )
             user.set_password('password')
             user.save()
