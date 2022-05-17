@@ -25,6 +25,9 @@ def give_kudos(request, user_id):
         request.user.kudos_counter = 3
         request.user.save()
 
+    if request.user.id == to_user.id:
+        return Response({'detail': "Can't give your self kudos mate! :C"}, status=HTTP_400_BAD_REQUEST)
+
     if not request.user.kudos_counter > 0:
         return Response({'detail': 'Not Enough Kudos left for this Week :(.'}, status=HTTP_400_BAD_REQUEST)
 
